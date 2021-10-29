@@ -3,17 +3,14 @@ const HttpError = require("../models/http-error");
 const { validationResult } = require("express-validator");
 const User = require("../models/user");
 
-const DUMMY_USERS = [
-  {
-    id: "u1",
-    name: "Viet",
-    email: "test@sheridancollege.ca",
-    password: "tester",
-  },
-];
-
-const getUsers = (req, res, next) => {
-  res.json({ users: DUMMY_USERS });
+const getUsers = async (req, res, next) => {
+  let users;
+  try {
+    users = await User.find({}, "email name");
+  } catch (e) {
+    return next(e);
+  }
+  res.json({ users: users.map((user) => user.toObject({ getters: true })) });
 };
 
 const signup = async (req, res, next) => {
@@ -23,7 +20,7 @@ const signup = async (req, res, next) => {
       new HttpError("Invalid inputs passed, please check your data.", 422)
     );
   }
-  const { name, email, password, places } = req.body;
+  const { name, email, password } = req.body;
 
   let existingUser;
   try {
@@ -42,7 +39,7 @@ const signup = async (req, res, next) => {
     image:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Keanu_Reeves_%28crop_and_levels%29_%28cropped%29.jpg/769px-Keanu_Reeves_%28crop_and_levels%29_%28cropped%29.jpg",
     password,
-    places,
+    places: [],
   });
 
   try {
@@ -68,7 +65,6 @@ const login = async (req, res, next) => {
   if (!existingUser || existingUser.password !== password) {
     return next(new HttpError("Loggin failed", 422));
   }
-
 
   res.json({ message: "Logged in!" });
 };
