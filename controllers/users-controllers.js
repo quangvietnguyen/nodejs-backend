@@ -36,8 +36,7 @@ const signup = async (req, res, next) => {
   const createUser = new User({
     name,
     email,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Keanu_Reeves_%28crop_and_levels%29_%28cropped%29.jpg/769px-Keanu_Reeves_%28crop_and_levels%29_%28cropped%29.jpg",
+    image: req.file.path,
     password,
     places: [],
   });
