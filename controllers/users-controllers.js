@@ -1,6 +1,7 @@
 const uuid = require("uuid");
 const HttpError = require("../models/http-error");
 const { validationResult } = require("express-validator");
+const User = require("../models/user");
 
 const DUMMY_USERS = [
   {
@@ -15,37 +16,60 @@ const getUsers = (req, res, next) => {
   res.json({ users: DUMMY_USERS });
 };
 
-const signup = (req, res, next) => {
+const signup = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    throw new HttpError("Invalid inputs passed, please check your data.", 422);
+    return next(
+      new HttpError("Invalid inputs passed, please check your data.", 422)
+    );
   }
-  const { name, email, password } = req.body;
+  const { name, email, password, places } = req.body;
 
-  const hasUser = DUMMY_USERS.find((u) => u.email === email);
-
-  if (hasUser) {
-    throw new HttpError("User has already existed.", 422);
+  let existingUser;
+  try {
+    existingUser = await User.findOne({ email: email });
+  } catch (e) {
+    return next(e);
   }
-  const createUser = {
-    id: uuid.v4(),
+
+  if (existingUser) {
+    return next(new HttpError("User exists already", 422));
+  }
+
+  const createUser = new User({
     name,
     email,
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Keanu_Reeves_%28crop_and_levels%29_%28cropped%29.jpg/769px-Keanu_Reeves_%28crop_and_levels%29_%28cropped%29.jpg",
     password,
-  };
+    places,
+  });
 
-  DUMMY_USERS.push(createUser);
+  try {
+    await createUser.save();
+  } catch (e) {
+    return next(e);
+  }
 
-  res.status(201).json({ user: createUser });
+  res.status(201).json({ user: createUser.toObject({ getters: true }) });
 };
 
-const login = (req, res, next) => {
+const login = async (req, res, next) => {
   const { email, password } = req.body;
 
-  const identifiedUser = DUMMY_USERS.find((u) => u.email === email);
-  if (!identifiedUser || identifiedUser.password !== password) {
-    throw new HttpError("Could not identify user.", 401);
+  let existingUser;
+
+  try {
+    existingUser = await User.findOne({ email: email });
+  } catch (e) {
+    return next(e);
   }
+
+  if (!existingUser || existingUser.password !== password) {
+    return next(new HttpError("Loggin failed", 422));
+  }
+
+
   res.json({ message: "Logged in!" });
 };
 

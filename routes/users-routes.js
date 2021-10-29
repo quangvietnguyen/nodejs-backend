@@ -11,6 +11,7 @@ router.post(
     body("name").not().isEmpty(),
     body("email").normalizeEmail().isEmail(),
     body("password").isLength({ min: 5 }),
+    body("places").not().isEmpty()
   ],
   usersControllers.signup
 );
