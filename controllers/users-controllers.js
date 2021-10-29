@@ -6,7 +6,7 @@ const User = require("../models/user");
 const getUsers = async (req, res, next) => {
   let users;
   try {
-    users = await User.find({}, "email name");
+    users = await User.find({}, "-password");
   } catch (e) {
     return next(e);
   }
@@ -66,7 +66,10 @@ const login = async (req, res, next) => {
     return next(new HttpError("Loggin failed", 422));
   }
 
-  res.json({ message: "Logged in!" });
+  res.json({
+    message: "Logged in!",
+    user: existingUser.toObject({ getters: true }),
+  });
 };
 
 exports.getUsers = getUsers;
