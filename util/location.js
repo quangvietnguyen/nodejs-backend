@@ -19,9 +19,9 @@ const getCoordsForAddress = async (address) => {
     );
     throw error;
   }
-  let location = { lng: 0, lnt: 0 };
+  let location = { lng: 0, lat: 0 };
   location.lng = data.features[0].geometry.coordinates[0];
-  location.lnt = data.features[0].geometry.coordinates[1];
+  location.lat = data.features[0].geometry.coordinates[1];
   return location;
 };
 

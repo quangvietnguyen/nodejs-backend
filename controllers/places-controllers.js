@@ -2,6 +2,8 @@ const HttpError = require("../models/http-error");
 const uuid = require("uuid");
 const { validationResult } = require("express-validator");
 const getCoordsForAddress = require("../util/location");
+const Place = require("../models/place");
+const mongoose = require("mongoose");
 
 let DUMMY_PLACES = [
   {
@@ -19,22 +21,24 @@ let DUMMY_PLACES = [
   },
 ];
 
-const getPlaceById = (req, res, next) => {
+const getPlaceById = async (req, res, next) => {
   const placeId = req.params.placeId;
-  const place = DUMMY_PLACES.find((p) => {
-    return p.id === placeId;
-  });
-  if (!place) {
-    throw new HttpError("Could not find a place for the provided id.", 404);
+  let place;
+  try {
+    place = await Place.findById(placeId);
+  } catch (e) {
+    return next(e);
   }
-  res.json({ place });
+
+  if (!place) {
+    return next(HttpError("Could not find a place for the provided id.", 404));
+  }
+  res.json({ place: place.toObject({ getters: true }) });
 };
 
-const getPlacesByUserId = (req, res, next) => {
-  const uesrId = req.params.userId;
-  const places = DUMMY_PLACES.find((p) => {
-    return p.creator === uesrId;
-  });
+const getPlacesByUserId = async (req, res, next) => {
+  const userId = req.params.userId;
+  const places = await Place.find({creator: userId});
   if (!places || places.length === 0) {
     return next(
       new HttpError("Could not find a place for the provided id.", 404)
@@ -49,23 +53,28 @@ const createPlace = async (req, res, next) => {
   }
   const { title, description, address, creator } = req.body;
 
-  let location;
+  let coordinates;
   try {
-    location = await getCoordsForAddress(address);
+    coordinates = await getCoordsForAddress(address);
   } catch (e) {
     return next(e);
   }
 
-  const createdPlace = {
-    id: uuid.v4(),
+  const createdPlace = new Place({
     title,
     description,
-    location,
     address,
+    location: coordinates,
+    imageUrl:
+      "https://upload.wikimedia.org/wikipedia/commons/9/96/Toronto_-_ON_-_Toronto_Harbourfront7.jpg",
     creator,
-  };
+  });
 
-  DUMMY_PLACES.push(createPlace);
+  try {
+    await createdPlace.save();
+  } catch (e) {
+    return next(e);
+  }
 
   res.status(201).json({ place: createdPlace });
 };
