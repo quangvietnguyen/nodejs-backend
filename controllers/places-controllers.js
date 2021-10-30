@@ -64,7 +64,7 @@ const createPlace = async (req, res, next) => {
     description,
     address,
     location: coordinates,
-    imageUrl: req.file.path,
+    image: req.file.path,
     creator,
   });
 
@@ -132,7 +132,7 @@ const deletePlaceById = async (req, res, next) => {
     return next(new HttpError("Could not find the place!", 404));
   }
 
-  const imagePath = place.imageUrl;
+  const imagePath = place.image;
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
