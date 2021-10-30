@@ -1,9 +1,0 @@
-{
-    "env": {
-        "DB_USER": "vietnguyen",
-        "DB_PASSWORD": "Nexaple92",
-        "DB_NAME": "database",
-        "MAPBOX_TOKEN": "pk.eyJ1IjoidmlldGN0aSIsImEiOiJja2twejJ0c2gwY2F2MnFvNW00enZ3NHl2In0.TVhNUtbDIMYHTZUSLmjpAQ",
-        "JWT_KEY": "secretnumberone"
-    }
-}
